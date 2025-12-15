@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNOCHEN VOGEL - Die Augen im Dunkeln</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            font-family: 'VT323', monospace;
+            overflow: hidden;
+        }
+        
+        .device {
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a, #000);
+            border-radius: 30px 30px 50px 50px;
+            padding: 20px;
+            box-shadow: 
+                0 0 50px rgba(255,0,0,0.1),
+                inset 0 2px 0 rgba(255,255,255,0.05);
+            position: relative;
+            border: 2px solid #1a1a1a;
+        }
+        
+        .device::before {
+            content: 'KNOCHEN VOGEL';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 6px;
+            color: #330000;
+            letter-spacing: 1px;
+        }
+        
+        .screen-frame {
+            background: #000;
+            border-radius: 15px;
+            padding: 10px;
+            margin-top: 15px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,1);
+            border: 1px solid #111;
+        }
+        
+        .lcd-screen {
+            width: 260px;
+            height: 260px;
+            background: #000;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .eyes-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        #face-canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        
+        .stats-area {
+            padding: 10px;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-icon {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 6px;
+            color: #440000;
+            margin-bottom: 3px;
+        }
+        
+        .stat-bar {
+            width: 35px;
+            height: 4px;
+            background: #1a0000;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #aa0000, #ff0000);
+            transition: width 0.3s;
+            box-shadow: 0 0 5px #ff0000;
+        }
+        
+        .info-display {
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            color: #550000;
+            padding: 8px;
+            border-top: 1px solid #1a0000;
+        }
+        
+        .message {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            color: #ff0000;
+            text-align: center;
+            text-shadow: 0 0 10px #ff0000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .message.visible {
+            opacity: 1;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            padding: 10px;
+        }
+        
+        .btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            box-shadow: 
+                0 4px 0 #000,
+                inset 0 2px 3px rgba(255,255,255,0.1),
+                inset 0 -2px 3px rgba(0,0,0,0.3);
+            transition: all 0.1s;
+            position: relative;
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: #440000;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(255,0,0,0.3);
+        }
+        
+        .btn:hover::after {
+            background: #660000;
+            box-shadow: 0 0 8px rgba(255,0,0,0.5);
+        }
+        
+        .btn:active {
+            transform: translateY(3px);
+            box-shadow: 
+                0 1px 0 #000,
+                inset 0 2px 3px rgba(255,255,255,0.1),
+                inset 0 -2px 3px rgba(0,0,0,0.3);
+        }
+        
+        .btn:active::after {
+            background: #aa0000;
+            box-shadow: 0 0 10px rgba(255,0,0,0.8);
+        }
+        
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .btn:disabled::after {
+            background: #1a0000;
+            box-shadow: none;
+        }
+        
+        .decoration {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        
+        .decoration span {
+            width: 6px;
+            height: 6px;
+            background: #1a0000;
+            border-radius: 50%;
+        }
+        
+        .first-start {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+        
+        .first-start-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            color: #aa0000;
+            text-align: center;
+            line-height: 2.5;
+            max-width: 350px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #ff0000;
+        }
+        
+        .first-start-warning {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            color: #ff0000;
+            text-align: center;
+            line-height: 2;
+            margin-bottom: 40px;
+            animation: flicker 2s infinite;
+        }
+        
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .start-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            padding: 15px 30px;
+            background: transparent;
+            color: #ff0000;
+            border: 2px solid #550000;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-shadow: 0 0 10px #ff0000;
+        }
+        
+        .start-btn:hover {
+            background: #1a0000;
+            border-color: #ff0000;
+            box-shadow: 0 0 30px rgba(255,0,0,0.5);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .death-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            z-index: 10;
+        }
+        
+        .death-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            color: #330000;
+            text-align: center;
+            line-height: 2.5;
+        }
+        
+        .victory-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            z-index: 10;
+        }
+        
+        .victory-text {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            color: #ff0000;
+            text-align: center;
+            line-height: 2.5;
+            text-shadow: 0 0 20px #ff0000;
+        }
+        
+
+    </style>
+</head>
+<body>
+    <div class="first-start" id="first-start">
+        <div class="first-start-text">
+            ETWAS BEOBACHTET<br>
+            DICH AUS DER<br>
+            DUNKELHEIT<br><br>
+            HALTE ES AM LEBEN<br>
+            100 JAHRE LANG
+        </div>
+        <div class="first-start-warning">
+            WENN ES STIRBT<br>
+            ERLISCHT DAS LICHT<br>
+            FÜR IMMER
+        </div>
+        <button class="start-btn" onclick="beginLife()">ERWECKEN</button>
+    </div>
+
+    <div class="device">
+        <div class="screen-frame">
+            <div class="lcd-screen" id="lcd-screen">
+                <div class="eyes-container" id="eyes-container">
+                    <canvas id="face-canvas" width="120" height="100"></canvas>
+                </div>
+                
+                <div class="message" id="message"></div>
+                
+                <div class="stats-area" id="stats-area">
+                    <div class="stat">
+                        <span class="stat-icon">H</span>
+                        <div class="stat-bar"><div class="stat-fill" id="hunger-bar" style="width: 100%"></div></div>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-icon">G</span>
+                        <div class="stat-bar"><div class="stat-fill" id="happy-bar" style="width: 100%"></div></div>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-icon">E</span>
+                        <div class="stat-bar"><div class="stat-fill" id="energy-bar" style="width: 100%"></div></div>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-icon">L</span>
+                        <div class="stat-bar"><div class="stat-fill" id="health-bar" style="width: 100%"></div></div>
+                    </div>
+                </div>
+                
+                <div class="info-display">
+                    ALTER: <span id="age">0</span> JAHRE | TAG <span id="day">0</span>
+                </div>
+                
+                <div class="death-overlay hidden" id="death-overlay">
+                    <div class="death-text">
+                        DAS LICHT<br>
+                        IST ERLOSCHEN<br><br>
+                        ALTER: <span id="death-age">0</span> JAHRE<br><br>
+                        DIE DUNKELHEIT<br>
+                        IST JETZT<br>
+                        VOLLSTÄNDIG
+                    </div>
+                </div>
+                
+                <div class="victory-overlay hidden" id="victory-overlay">
+                    <div class="victory-text">
+                        DU HAST ES<br>
+                        GESCHAFFT<br><br>
+                        100 JAHRE<br><br>
+                        DIE AUGEN<br>
+                        WERDEN DICH<br>
+                        NIE VERGESSEN
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn" id="btn-feed" onclick="feed()" title="Füttern"></button>
+            <button class="btn" id="btn-play" onclick="play()" title="Spielen"></button>
+            <button class="btn" id="btn-sleep" onclick="sleep()" title="Schlafen"></button>
+            <button class="btn" id="btn-heal" onclick="heal()" title="Heilen"></button>
+        </div>
+        
+        <div class="decoration">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'knochenvogel_eyes_v2';
+        const SECONDS_PER_YEAR = 43200; // 12 Stunden = 1 Jahr
+        
+        let gameState = null;
+        let animationFrame = 0;
+        
+        function formatDate(timestamp) {
+            const d = new Date(timestamp);
+            return d.toLocaleDateString('de-DE', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric'
+            });
+        }
+        
+        function saveGame() {
+            if (gameState) {
+                gameState.lastSave = Date.now();
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+            }
+        }
+        
+        function loadGame() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            return null;
+        }
+        
+        function beginLife() {
+            document.getElementById('first-start').classList.add('hidden');
+            
+            gameState = {
+                hunger: 100,
+                happiness: 100,
+                energy: 100,
+                health: 100,
+                birthTime: Date.now(),
+                deathTime: null,
+                isAlive: true,
+                hasWon: false,
+                isSleeping: false,
+                lastSave: Date.now()
+            };
+            
+            saveGame();
+        }
+        
+        function calculateOfflineProgress() {
+            if (!gameState || !gameState.isAlive || gameState.hasWon) return;
+            
+            const now = Date.now();
+            const timePassed = (now - gameState.lastSave) / 1000;
+            
+            gameState.hunger = Math.max(0, gameState.hunger - timePassed * 0.003);
+            gameState.happiness = Math.max(0, gameState.happiness - timePassed * 0.002);
+            gameState.energy = Math.max(0, gameState.energy - timePassed * 0.002);
+            
+            if (gameState.hunger < 20 || gameState.energy < 10) {
+                gameState.health = Math.max(0, gameState.health - timePassed * 0.005);
+            }
+            
+            if (gameState.hunger <= 0 || gameState.health <= 0) {
+                gameState.isAlive = false;
+                gameState.deathTime = gameState.lastSave + (timePassed * 500);
+            }
+        }
+        
+        function getAge() {
+            if (!gameState) return 0;
+            const endTime = gameState.deathTime || Date.now();
+            const secondsLived = (endTime - gameState.birthTime) / 1000;
+            return Math.floor(secondsLived / SECONDS_PER_YEAR);
+        }
+        
+        function getDay() {
+            if (!gameState) return 0;
+            const secondsLived = (Date.now() - gameState.birthTime) / 1000;
+            return Math.floor(secondsLived / 86400);
+        }
+        
+        function getMood() {
+            if (!gameState || !gameState.isAlive) return 'dead';
+            if (gameState.isSleeping) return 'sleepy';
+            
+            const avg = (gameState.hunger + gameState.happiness + gameState.energy + gameState.health) / 4;
+            
+            if (avg > 70) return 'happy';
+            if (avg > 40) return 'normal';
+            if (avg > 20) return 'sad';
+            return 'angry';
+        }
+        
+        const faceCanvas = document.getElementById('face-canvas');
+        const faceCtx = faceCanvas.getContext('2d');
+        const PIXEL = 4; // Größe eines "LCD Pixels"
+        
+        // Pixel-Art Sprites für die Fratze (30x25 grid)
+        const sprites = {
+            // Normal - böses Grinsen
+            normal: {
+                eyes: [
+                    // Linkes Auge - zusammengekniffen, nach innen geneigt
+                    [8,6],[9,5],[10,5],[11,5],[12,6],[13,7],
+                    [9,6],[10,6],[11,6],[12,6],
+                    [10,7],[11,7],
+                    // Rechtes Auge
+                    [17,7],[18,6],[19,5],[20,5],[21,5],[22,6],
+                    [18,6],[19,6],[20,6],[21,6],
+                    [19,7],[20,7],
+                ],
+                pupils: [
+                    [10,6],[11,6],
+                    [19,6],[20,6],
+                ],
+                mouth: [
+                    // Breites böses Grinsen mit Zähnen
+                    [7,17],[8,16],[9,15],[10,15],[11,15],[12,15],[13,15],[14,15],[15,15],[16,15],[17,15],[18,15],[19,15],[20,16],[21,17],
+                    [8,17],[9,16],[10,16],[11,16],[12,16],[13,16],[14,16],[15,16],[16,16],[17,16],[18,16],[19,16],[20,17],
+                    // Zähne
+                    [10,17],[12,17],[14,17],[16,17],[18,17],
+                    [9,17],[11,17],[13,17],[15,17],[17,17],[19,17],
+                    // Untere Lippe
+                    [9,18],[10,18],[11,18],[12,18],[13,18],[14,18],[15,18],[16,18],[17,18],[18,18],[19,18],
+                ],
+                teeth: [
+                    [10,17],[12,17],[14,17],[16,17],[18,17],
+                ]
+            },
+            // Happy - breiteres Grinsen
+            happy: {
+                eyes: [
+                    [8,7],[9,6],[10,5],[11,5],[12,6],[13,7],
+                    [9,7],[10,6],[11,6],[12,7],
+                    [17,7],[18,6],[19,5],[20,5],[21,6],[22,7],
+                    [18,7],[19,6],[20,6],[21,7],
+                ],
+                pupils: [
+                    [10,6],[11,6],
+                    [19,6],[20,6],
+                ],
+                mouth: [
+                    [6,16],[7,15],[8,14],[9,14],[10,14],[11,14],[12,14],[13,14],[14,14],[15,14],[16,14],[17,14],[18,14],[19,14],[20,15],[21,16],
+                    [7,16],[8,15],[9,15],[10,15],[11,15],[12,15],[13,15],[14,15],[15,15],[16,15],[17,15],[18,15],[19,15],[20,16],
+                    [8,16],[9,16],[10,16],[11,16],[12,16],[13,16],[14,16],[15,16],[16,16],[17,16],[18,16],[19,16],
+                    [9,17],[10,17],[11,17],[12,17],[13,17],[14,17],[15,17],[16,17],[17,17],[18,17],
+                ],
+                teeth: [
+                    [10,16],[12,16],[14,16],[16,16],[18,16],
+                    [9,16],[11,16],[13,16],[15,16],[17,16],
+                ]
+            },
+            // Angry - sehr zusammengekniffen
+            angry: {
+                eyes: [
+                    [7,8],[8,7],[9,6],[10,6],[11,6],[12,6],[13,7],[14,8],
+                    [9,7],[10,7],[11,7],[12,7],
+                    [16,8],[17,7],[18,6],[19,6],[20,6],[21,6],[22,7],[23,8],
+                    [18,7],[19,7],[20,7],[21,7],
+                ],
+                pupils: [
+                    [10,7],[11,7],
+                    [19,7],[20,7],
+                ],
+                mouth: [
+                    [8,16],[9,15],[10,15],[11,15],[12,15],[13,15],[14,15],[15,15],[16,15],[17,15],[18,15],[19,16],
+                    [9,16],[10,16],[11,16],[12,16],[13,16],[14,16],[15,16],[16,16],[17,16],[18,16],
+                    [10,17],[11,17],[12,17],[13,17],[14,17],[15,17],[16,17],[17,17],
+                ],
+                teeth: [
+                    [11,16],[13,16],[15,16],[17,16],
+                ]
+            },
+            // Sad - Augen nach oben, Mund nach unten
+            sad: {
+                eyes: [
+                    [8,8],[9,7],[10,6],[11,6],[12,7],[13,8],
+                    [9,8],[10,7],[11,7],[12,8],
+                    [17,8],[18,7],[19,6],[20,6],[21,7],[22,8],
+                    [18,8],[19,7],[20,7],[21,8],
+                ],
+                pupils: [
+                    [10,7],[11,7],
+                    [19,7],[20,7],
+                ],
+                mouth: [
+                    [9,15],[10,16],[11,17],[12,17],[13,17],[14,17],[15,17],[16,17],[17,16],[18,15],
+                    [10,15],[11,16],[12,16],[13,16],[14,16],[15,16],[16,16],[17,15],
+                ],
+                teeth: []
+            },
+            // Sleepy
+            sleepy: {
+                eyes: [
+                    [9,7],[10,7],[11,7],[12,7],
+                    [18,7],[19,7],[20,7],[21,7],
+                ],
+                pupils: [],
+                mouth: [
+                    [12,16],[13,16],[14,16],[15,16],
+                ],
+                teeth: []
+            },
+            // Dead - X Augen
+            dead: {
+                eyes: [
+                    [9,5],[11,7],[9,7],[11,5],[10,6],
+                    [19,5],[21,7],[19,7],[21,5],[20,6],
+                ],
+                pupils: [],
+                mouth: [
+                    [10,16],[11,16],[12,16],[13,16],[14,16],[15,16],[16,16],[17,16],
+                ],
+                teeth: []
+            }
+        };
+        
+        let blinkFrame = 0;
+        let isBlinking = false;
+        
+        function drawFace() {
+            const mood = getMood();
+            const sprite = sprites[mood] || sprites.normal;
+            
+            // Clear
+            faceCtx.fillStyle = '#000';
+            faceCtx.fillRect(0, 0, faceCanvas.width, faceCanvas.height);
+            
+            if (!gameState) return;
+            
+            const intensity = gameState.isAlive ? gameState.health / 100 : 0.1;
+            const eyeColor = gameState.isAlive ? `rgb(${Math.floor(150 + 105 * intensity)}, 0, 0)` : '#220000';
+            const mouthColor = gameState.isAlive ? `rgb(${Math.floor(100 + 80 * intensity)}, 0, ${Math.floor(20 * intensity)})` : '#1a0000';
+            const teethColor = '#000';
+            
+            // Blinzeln
+            if (isBlinking && mood !== 'sleepy' && mood !== 'dead') {
+                // Nur horizontale Linien für Augen
+                faceCtx.fillStyle = eyeColor;
+                for (let x = 9; x <= 12; x++) {
+                    faceCtx.fillRect(x * PIXEL, 7 * PIXEL, PIXEL, PIXEL);
+                }
+                for (let x = 18; x <= 21; x++) {
+                    faceCtx.fillRect(x * PIXEL, 7 * PIXEL, PIXEL, PIXEL);
+                }
+            } else {
+                // Augen zeichnen
+                faceCtx.fillStyle = eyeColor;
+                sprite.eyes.forEach(([x, y]) => {
+                    faceCtx.fillRect(x * PIXEL, y * PIXEL, PIXEL, PIXEL);
+                });
+                
+                // Pupillen
+                faceCtx.fillStyle = '#000';
+                sprite.pupils.forEach(([x, y]) => {
+                    faceCtx.fillRect(x * PIXEL, y * PIXEL, PIXEL, PIXEL);
+                });
+            }
+            
+            // Mund
+            faceCtx.fillStyle = mouthColor;
+            sprite.mouth.forEach(([x, y]) => {
+                faceCtx.fillRect(x * PIXEL, y * PIXEL, PIXEL, PIXEL);
+            });
+            
+            // Zähne (schwarz = Lücken im Mund)
+            faceCtx.fillStyle = teethColor;
+            sprite.teeth.forEach(([x, y]) => {
+                faceCtx.fillRect(x * PIXEL, y * PIXEL, PIXEL, PIXEL);
+            });
+            
+            // Glow-Effekt simulieren mit halbtransparenten Pixeln um die Augen
+            if (gameState.isAlive && intensity > 0.3) {
+                faceCtx.fillStyle = `rgba(255, 0, 0, ${intensity * 0.15})`;
+                sprite.eyes.forEach(([x, y]) => {
+                    faceCtx.fillRect((x-1) * PIXEL, y * PIXEL, PIXEL, PIXEL);
+                    faceCtx.fillRect((x+1) * PIXEL, y * PIXEL, PIXEL, PIXEL);
+                    faceCtx.fillRect(x * PIXEL, (y-1) * PIXEL, PIXEL, PIXEL);
+                    faceCtx.fillRect(x * PIXEL, (y+1) * PIXEL, PIXEL, PIXEL);
+                });
+            }
+        }
+        
+        function updateEyes() {
+            // Blinzel-Logik
+            if (gameState && gameState.isAlive && !gameState.isSleeping) {
+                if (animationFrame % 150 === 0 && Math.random() > 0.3) {
+                    isBlinking = true;
+                    setTimeout(() => { isBlinking = false; }, 100);
+                }
+                // Doppelblinzeln
+                if (animationFrame % 400 === 0 && Math.random() > 0.6) {
+                    isBlinking = true;
+                    setTimeout(() => {
+                        isBlinking = false;
+                        setTimeout(() => {
+                            isBlinking = true;
+                            setTimeout(() => { isBlinking = false; }, 80);
+                        }, 100);
+                    }, 80);
+                }
+            }
+            
+            drawFace();
+        }
+        
+        function updateStats() {
+            if (!gameState) return;
+            
+            document.getElementById('hunger-bar').style.width = gameState.hunger + '%';
+            document.getElementById('happy-bar').style.width = gameState.happiness + '%';
+            document.getElementById('energy-bar').style.width = gameState.energy + '%';
+            document.getElementById('health-bar').style.width = gameState.health + '%';
+            document.getElementById('age').textContent = getAge();
+            document.getElementById('day').textContent = getDay();
+        }
+        
+        function showMessage(text) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.classList.add('visible');
+            setTimeout(() => msg.classList.remove('visible'), 2000);
+        }
+        
+        function feed() {
+            if (!gameState || !gameState.isAlive || gameState.isSleeping) return;
+            gameState.hunger = Math.min(100, gameState.hunger + 25);
+            showMessage('...');
+            saveGame();
+        }
+        
+        function play() {
+            if (!gameState || !gameState.isAlive || gameState.isSleeping) return;
+            if (gameState.energy < 20) {
+                showMessage('...');
+                return;
+            }
+            gameState.happiness = Math.min(100, gameState.happiness + 20);
+            gameState.energy = Math.max(0, gameState.energy - 15);
+            showMessage('...');
+            saveGame();
+        }
+        
+        function sleep() {
+            if (!gameState || !gameState.isAlive) return;
+            gameState.isSleeping = !gameState.isSleeping;
+            showMessage(gameState.isSleeping ? '...' : '...');
+            saveGame();
+        }
+        
+        function heal() {
+            if (!gameState || !gameState.isAlive) return;
+            gameState.health = Math.min(100, gameState.health + 30);
+            showMessage('...');
+            saveGame();
+        }
+        
+        function checkDeath() {
+            if (!gameState || !gameState.isAlive) return;
+            
+            if (gameState.hunger <= 0 || gameState.health <= 0) {
+                gameState.isAlive = false;
+                gameState.deathTime = Date.now();
+                saveGame();
+                showDeathScreen();
+            }
+        }
+        
+        function showDeathScreen() {
+            document.getElementById('death-age').textContent = getAge();
+            document.getElementById('death-overlay').classList.remove('hidden');
+            document.getElementById('stats-area').classList.add('hidden');
+            document.querySelectorAll('.btn').forEach(btn => btn.disabled = true);
+        }
+        
+        function checkVictory() {
+            if (!gameState || !gameState.isAlive || gameState.hasWon) return;
+            
+            if (getAge() >= 100) {
+                gameState.hasWon = true;
+                saveGame();
+                document.getElementById('victory-overlay').classList.remove('hidden');
+            }
+        }
+        
+        function init() {
+            const saved = loadGame();
+            
+            if (saved) {
+                gameState = saved;
+                document.getElementById('first-start').classList.add('hidden');
+                
+                if (gameState.isAlive && !gameState.hasWon) {
+                    calculateOfflineProgress();
+                    saveGame();
+                }
+                
+                if (!gameState.isAlive) {
+                    showDeathScreen();
+                } else if (gameState.hasWon) {
+                    document.getElementById('victory-overlay').classList.remove('hidden');
+                }
+            }
+        }
+        
+        let lastTick = Date.now();
+        
+        function gameLoop() {
+            const now = Date.now();
+            const delta = (now - lastTick) / 1000;
+            lastTick = now;
+            
+            if (gameState && gameState.isAlive && !gameState.hasWon) {
+                if (!gameState.isSleeping) {
+                    gameState.hunger = Math.max(0, gameState.hunger - 0.003 * delta);
+                    gameState.happiness = Math.max(0, gameState.happiness - 0.002 * delta);
+                    gameState.energy = Math.max(0, gameState.energy - 0.002 * delta);
+                } else {
+                    gameState.energy = Math.min(100, gameState.energy + 0.01 * delta);
+                    gameState.hunger = Math.max(0, gameState.hunger - 0.002 * delta);
+                }
+                
+                if (gameState.hunger < 20 || gameState.energy < 10) {
+                    gameState.health = Math.max(0, gameState.health - 0.005 * delta);
+                }
+                
+                checkDeath();
+                checkVictory();
+                
+                if (now - gameState.lastSave > 30000) {
+                    saveGame();
+                }
+            }
+            
+            animationFrame++;
+            updateEyes();
+            updateStats();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        window.addEventListener('beforeunload', saveGame);
+        window.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                saveGame();
+            } else if (gameState && gameState.isAlive) {
+                calculateOfflineProgress();
+            }
+        });
+        
+        init();
+        gameLoop();
+    </script>
+</body>
+</html>
